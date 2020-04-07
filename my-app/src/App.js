@@ -33,7 +33,8 @@ class App extends React.Component {
     super();
     this.state= {
       user: [],
-      followers: []
+      followers: [],
+      userName: ""
   };
 }
 
@@ -59,10 +60,48 @@ componentDidMount(){
   });
 }
 
+handleChange = event => {
+  this.setState({
+    userName: event.target.value
+  });
+};
+
+fetchUser = event => {
+  event.preventDefault();
+  axios
+    .get(`https://api.github.com/users/${this.state.username}`)
+    .then(res => {
+      this.setState({ user: res.data });
+    })
+    .catch( err => {
+      console.log("Failed to retrieve data", err)
+    });
+
+  axios.get(`https://api.github.com/users/${this.state.username}/followers`)
+    .then(response => {
+      console.log(response.data)
+      this.setState({
+        followers: response.data
+    });
+  })
+  .catch( err => {
+    console.log("Failed to retrieve data", err)
+  });
+};
+
 render(){
   return(
     <div className="App">
       <header className="App-Header">
+        <h2>GIT HUB USER</h2>
+
+        <input
+          type="text"
+          value={this.state.username}
+          onChange={this.handleChange}
+        />
+        <button onClick={this.fetchUser}>Change User</button>
+
         <CardContainer>
           <Image src={this.state.user.avatar_url}/>
           <div className="cardInfo">
@@ -75,10 +114,9 @@ render(){
               <SocialP>Followers: {this.state.user.followers}</SocialP>
               <SocialP>Following: {this.state.user.followers}</SocialP>
             </Social>
-            <p className="bio">{this.state.user.bio}</p>
           </div>
         </CardContainer>
-
+        <h2>FOLLOWERS:</h2>
         {this.state.followers.map(follower => (
           <CardContainer>
             <Image src={follower.avatar_url}/>
@@ -92,7 +130,6 @@ render(){
                 <SocialP>Followers: {follower.followers}</SocialP>
                 <SocialP>Following: {follower.followers}</SocialP>
               </Social>
-              <p className="bio">{follower.bio}</p>
             </div>
           </CardContainer>
         ))}
